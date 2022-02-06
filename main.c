@@ -155,7 +155,8 @@ int main()
 
         // Draw HUD
 
-        float angleDelta = AngleBetween(angles[0], angles[1]);
+        // We cheat a little bit here by negating the angle so that positive angles turn counter-clockwise.
+        float angleDelta = -AngleBetween(angles[0], angles[1]);
 
         const int fontSize = 30;
         int textPosY = 10;
@@ -164,9 +165,7 @@ int main()
 		DrawText(TextFormat("Angle delta: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angleDelta * RAD2DEG, angleDelta, cosf(angleDelta), sinf(angleDelta)), 10, textPosY += fontSize, fontSize, RAYWHITE);
 
 		DrawText(TextFormat("Dot product: %.2f", Vector2DotProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, dotProductColor);
-        // We cheat a little bit here by flipping the Y axis to match the Y axis flip we did when calculating angles.
-        float displayCrossProduct = Vector2CrossProduct((Vector2) { normals[0].x, -normals[0].y }, (Vector2) { normals[1].x, -normals[1].y });
-        DrawText(TextFormat("Cross product: %.2f", displayCrossProduct), 10, textPosY += fontSize, fontSize, crossProductColor);
+        DrawText(TextFormat("Cross product: %.2f", Vector2CrossProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, crossProductColor);
 
 		int screenHeight = GetScreenHeight();
 		textPosY = screenHeight - 10;
