@@ -143,6 +143,29 @@ int main()
             
             // Arc illustrating counter-clockwise angle [0, TAU). Not the most efficient approach but c'est la vie.
             DrawRingLines(lineStarts[index], 0.0f, lineLength * 0.5f, 90.0f, angles[index] * RAD2DEG + 90.0f, 0, lineColors[index]);
+
+            // Text label next to arrowhead.
+			const int labelFontSize = 20;
+            const int labelCount = 4;
+            const float offsetFromArrowhead = 20.0;
+            
+			float cosine = cosf(angles[index]);
+			float sine = sinf(angles[index]);
+
+            // Left-align label near the right, gradually center-align near top and bottom, and right-align near the left
+            float labelRightAlignment = (cosine - 1.0f) * -0.5f;
+            // Top-align label near the bottom, gradually center-align near left and right, and bottom-align near the top.
+            float labelBottomAlignment = sine * 0.5f + 0.5f; 
+            int labelPosX = (int) (lineEnds[index].x + normals[index].x * offsetFromArrowhead);
+			int labelPosY = (int)(lineEnds[index].y + normals[index].y * offsetFromArrowhead - labelBottomAlignment * labelFontSize * labelCount);
+			const char* degText = TextFormat("%.0f deg", angles[index] * RAD2DEG);
+			DrawText(degText, labelPosX - (int) (MeasureText(degText, labelFontSize) * labelRightAlignment), labelPosY, labelFontSize, lineColors[index]);
+			const char* radText = TextFormat("%.2f rad", angles[index]);
+			DrawText(radText, labelPosX - (int) (MeasureText(radText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
+			const char* cosText = TextFormat("cos: %.2f", cosine);
+			DrawText(cosText, labelPosX - (int) (MeasureText(cosText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
+			const char* sinText = TextFormat("sin: %.2f", sine);
+			DrawText(sinText, labelPosX - (int) (MeasureText(sinText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
         }
 
 		if (shouldDrawDotProductProjection & shouldDrawSecondaryArrow & shouldDrawDotAndCrossProductOptions)
