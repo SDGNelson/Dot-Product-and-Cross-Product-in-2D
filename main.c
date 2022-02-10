@@ -43,6 +43,28 @@ float Vector2CrossProduct(Vector2 v1, Vector2 v2)
     return v1.x * v2.y - v1.y * v2.x;
 }
 
+void DrawArrowLabel(Vector2 origin, Vector2 normal, float length, float displayAngle, float normalizedAngle, Color color)
+{
+	const int labelFontSize = 20;
+	const int labelCount = 4;
+	const float offsetFromArrowhead = 20.0;
+
+	// Left-align label near the right, gradually center-align near top and bottom, and right-align near the left
+	float labelRightAlignment = (cosf(normalizedAngle) - 1.0f) * -0.5f;
+	// Top-align label near the bottom, gradually center-align near left and right, and bottom-align near the top.
+	float labelBottomAlignment = sinf(normalizedAngle) * 0.5f + 0.5f;
+	int labelPosX = (int) (origin.x + normal.x * (length + offsetFromArrowhead));
+	int labelPosY = (int) (origin.y + normal.y * (length + offsetFromArrowhead) - labelBottomAlignment * labelFontSize * labelCount);
+	const char* degText = TextFormat("%.0f deg", displayAngle * RAD2DEG);
+	DrawText(degText, labelPosX - (int)(MeasureText(degText, labelFontSize) * labelRightAlignment), labelPosY, labelFontSize, color);
+	const char* radText = TextFormat("%.2f rad", displayAngle);
+	DrawText(radText, labelPosX - (int)(MeasureText(radText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, color);
+	const char* cosText = TextFormat("cos: %.2f", cosf(displayAngle));
+	DrawText(cosText, labelPosX - (int)(MeasureText(cosText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, color);
+	const char* sinText = TextFormat("sin: %.2f", sinf(displayAngle));
+	DrawText(sinText, labelPosX - (int)(MeasureText(sinText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, color);
+}
+
 // Entry point.
 int main()
 {
@@ -156,27 +178,7 @@ int main()
             DrawRingLines(lineStarts[index], 0.0f, lineLengths[index] * 0.5f, 90.0f, angles[index] * RAD2DEG + 90.0f, 0, lineColors[index]);
 
             // Text label next to arrowhead.
-			const int labelFontSize = 20;
-            const int labelCount = 4;
-            const float offsetFromArrowhead = 20.0;
-            
-			float cosine = cosf(angles[index]);
-			float sine = sinf(angles[index]);
-
-            // Left-align label near the right, gradually center-align near top and bottom, and right-align near the left
-            float labelRightAlignment = (cosine - 1.0f) * -0.5f;
-            // Top-align label near the bottom, gradually center-align near left and right, and bottom-align near the top.
-            float labelBottomAlignment = sine * 0.5f + 0.5f; 
-            int labelPosX = (int) (lineEnds[index].x + normals[index].x * offsetFromArrowhead);
-			int labelPosY = (int)(lineEnds[index].y + normals[index].y * offsetFromArrowhead - labelBottomAlignment * labelFontSize * labelCount);
-			const char* degText = TextFormat("%.0f deg", angles[index] * RAD2DEG);
-			DrawText(degText, labelPosX - (int) (MeasureText(degText, labelFontSize) * labelRightAlignment), labelPosY, labelFontSize, lineColors[index]);
-			const char* radText = TextFormat("%.2f rad", angles[index]);
-			DrawText(radText, labelPosX - (int) (MeasureText(radText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
-			const char* cosText = TextFormat("cos: %.2f", cosine);
-			DrawText(cosText, labelPosX - (int) (MeasureText(cosText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
-			const char* sinText = TextFormat("sin: %.2f", sine);
-			DrawText(sinText, labelPosX - (int) (MeasureText(sinText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
+            DrawArrowLabel(lineStarts[index], normals[index], lineLengths[index], angles[index], angles[index], lineColors[index]);
         }
 
 		// We cheat a little bit here by negating the angle so that positive angles turn counter-clockwise.
@@ -195,6 +197,9 @@ int main()
 			// Arc illustrating counter-clockwise angle [0, TAU).
             float startAngle = angles[1] * RAD2DEG + 90.0f;
 			DrawRingLines(lineStarts[1], 0.0f, averageLineLength * 0.5f, startAngle, startAngle + angleDelta * RAD2DEG, 0, RAYWHITE);
+
+			// Text label next to arrowhead.
+			DrawArrowLabel(lineStarts[1], normals[0], averageLineLength, angleDelta, angles[0], RAYWHITE);
         }
 
 		if (shouldDrawDotProductProjection & shouldDrawDotAndCrossProjectionPrompt)
