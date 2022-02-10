@@ -65,6 +65,10 @@ int main()
     Color dotProductColor = GOLD; // Not green on red arrow to help red-green colorblind viewers.
     Color crossProductColor = DARKGREEN;
     
+    // These two options are for the video.
+    bool shouldDrawSecondaryArrow = true;
+    bool shouldDrawDotAndCrossProductOptions = true;
+
 	bool shouldDrawDotProductProjection = false;
 	bool shouldDrawCrossProductProjection = false;
 
@@ -101,11 +105,19 @@ int main()
 		{
 			shouldDrawCrossProductProjection = !shouldDrawCrossProductProjection;
 		}
+        if (IsKeyPressed(KEY_F1))
+        {
+            shouldDrawSecondaryArrow = !shouldDrawSecondaryArrow;
+        }
+        if (IsKeyPressed(KEY_F2))
+        {
+            shouldDrawDotAndCrossProductOptions = !shouldDrawDotAndCrossProductOptions;
+        }
 
 		Vector2 normals[2];
         Vector2 clockwiseTangents[2];
         float angles[2]; // Counter-clockwise radians [0, TAU).
-        for (int index = 0; index < 2; ++index)
+        for (int index = (shouldDrawSecondaryArrow ? 1 : 0); index >= 0; --index)
         {
             Vector2 endRelativeToStart = Vector2Subtract(lineEnds[index], lineStarts[index]);
             normals[index] = endRelativeToStart;
@@ -133,7 +145,7 @@ int main()
             DrawRingLines(lineStarts[index], 0.0f, lineLength * 0.5f, 90.0f, angles[index] * RAD2DEG + 90.0f, 0, lineColors[index]);
         }
 
-		if (shouldDrawDotProductProjection)
+		if (shouldDrawDotProductProjection & shouldDrawSecondaryArrow & shouldDrawDotAndCrossProductOptions)
 		{
             // Dot product of (normal, vector) is 1D closest position of vector along normal.
 			Vector2 blueStartRelativeToRedStart = Vector2Subtract(lineStarts[1], lineStarts[0]);
@@ -143,7 +155,7 @@ int main()
 			DrawLineEx(Vector2Add(pointAlongNormal, Vector2Scale(clockwiseTangents[0], -4.0f)), Vector2Add(pointAlongNormal, Vector2Scale(clockwiseTangents[0], 4.0f)), 2.0f, dotProductColor);
 		}
 
-		if (shouldDrawCrossProductProjection)
+		if (shouldDrawCrossProductProjection & shouldDrawSecondaryArrow & shouldDrawDotAndCrossProductOptions)
 		{
 			// Cross product of (normal, vector) is 1D closest position of vector along tangent perpendicular to normal.
 			Vector2 blueStartRelativeToRedStart = Vector2Subtract(lineStarts[1], lineStarts[0]);
@@ -161,18 +173,30 @@ int main()
         const int fontSize = 30;
         int textPosY = 10;
         DrawText(TextFormat("Red angle: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angles[0] * RAD2DEG, angles[0], cosf(angles[0]), sinf(angles[0])), 10, textPosY, fontSize, lineColors[0]);
-		DrawText(TextFormat("Blue angle: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angles[1] * RAD2DEG, angles[1], cosf(angles[1]), sinf(angles[1])), 10, textPosY += fontSize, fontSize, lineColors[1]);
-		DrawText(TextFormat("Angle delta: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angleDelta * RAD2DEG, angleDelta, cosf(angleDelta), sinf(angleDelta)), 10, textPosY += fontSize, fontSize, RAYWHITE);
-
-		DrawText(TextFormat("Dot product: %.2f", Vector2DotProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, dotProductColor);
-        DrawText(TextFormat("Cross product: %.2f", Vector2CrossProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, crossProductColor);
+		
+        if (shouldDrawSecondaryArrow)
+        {
+            DrawText(TextFormat("Blue angle: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angles[1] * RAD2DEG, angles[1], cosf(angles[1]), sinf(angles[1])), 10, textPosY += fontSize, fontSize, lineColors[1]);
+            DrawText(TextFormat("Angle delta: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angleDelta * RAD2DEG, angleDelta, cosf(angleDelta), sinf(angleDelta)), 10, textPosY += fontSize, fontSize, RAYWHITE);
+            if (shouldDrawDotAndCrossProductOptions)
+            {
+                DrawText(TextFormat("Dot product: %.2f", Vector2DotProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, dotProductColor);
+                DrawText(TextFormat("Cross product: %.2f", Vector2CrossProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, crossProductColor);
+            }
+        }
 
 		int screenHeight = GetScreenHeight();
 		textPosY = screenHeight - 10;
-		DrawText("Toggle cross product projection: [Y]", 10, textPosY -= fontSize, fontSize, crossProductColor);
-		DrawText("Toggle dot product projection: [T]", 10, textPosY -= fontSize, fontSize, dotProductColor);
-        DrawText("Blue start: [E] Blue end: [R]", 10, textPosY -= fontSize, fontSize, lineColors[1]);
-		DrawText("Red start: [Q] Red end: [W]", 10, textPosY -= fontSize, fontSize, lineColors[0]);
+        if (shouldDrawSecondaryArrow)
+        {
+            if (shouldDrawDotAndCrossProductOptions)
+            {
+                DrawText("Toggle cross product projection: [Y]", 10, textPosY -= fontSize, fontSize, crossProductColor);
+                DrawText("Toggle dot product projection: [T]", 10, textPosY -= fontSize, fontSize, dotProductColor);
+            }
+            DrawText("Blue start: [E] Blue end: [R]", 10, textPosY -= fontSize, fontSize, lineColors[1]);
+        }
+        DrawText("Red start: [Q] Red end: [W]", 10, textPosY -= fontSize, fontSize, lineColors[0]);
 
         EndDrawing();
     }
