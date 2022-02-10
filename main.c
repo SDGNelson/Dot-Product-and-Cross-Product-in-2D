@@ -45,7 +45,7 @@ float Vector2CrossProduct(Vector2 v1, Vector2 v2)
 
 void DrawArrowLabel(Vector2 origin, Vector2 normal, float length, float displayAngle, float normalizedAngle, Color color)
 {
-	const int labelFontSize = 20;
+	const int fontSize = 20;
 	const int labelCount = 4;
 	const float offsetFromArrowhead = 20.0;
 
@@ -54,15 +54,15 @@ void DrawArrowLabel(Vector2 origin, Vector2 normal, float length, float displayA
 	// Top-align label near the bottom, gradually center-align near left and right, and bottom-align near the top.
 	float labelBottomAlignment = sinf(normalizedAngle) * 0.5f + 0.5f;
 	int labelPosX = (int) (origin.x + normal.x * (length + offsetFromArrowhead));
-	int labelPosY = (int) (origin.y + normal.y * (length + offsetFromArrowhead) - labelBottomAlignment * labelFontSize * labelCount);
+	int labelPosY = (int) (origin.y + normal.y * (length + offsetFromArrowhead) - labelBottomAlignment * fontSize * labelCount);
 	const char* degText = TextFormat("%.0f deg", displayAngle * RAD2DEG);
-	DrawText(degText, labelPosX - (int)(MeasureText(degText, labelFontSize) * labelRightAlignment), labelPosY, labelFontSize, color);
+	DrawText(degText, labelPosX - (int)(MeasureText(degText, fontSize) * labelRightAlignment), labelPosY, fontSize, color);
 	const char* radText = TextFormat("%.2f rad", displayAngle);
-	DrawText(radText, labelPosX - (int)(MeasureText(radText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, color);
+	DrawText(radText, labelPosX - (int)(MeasureText(radText, fontSize) * labelRightAlignment), labelPosY += fontSize, fontSize, color);
 	const char* cosText = TextFormat("cos: %.2f", cosf(displayAngle));
-	DrawText(cosText, labelPosX - (int)(MeasureText(cosText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, color);
+	DrawText(cosText, labelPosX - (int)(MeasureText(cosText, fontSize) * labelRightAlignment), labelPosY += fontSize, fontSize, color);
 	const char* sinText = TextFormat("sin: %.2f", sinf(displayAngle));
-	DrawText(sinText, labelPosX - (int)(MeasureText(sinText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, color);
+	DrawText(sinText, labelPosX - (int)(MeasureText(sinText, fontSize) * labelRightAlignment), labelPosY += fontSize, fontSize, color);
 }
 
 // Entry point.
