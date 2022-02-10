@@ -179,6 +179,26 @@ int main()
 
             // Text label next to arrowhead.
             DrawArrowLabel(lineStarts[index], normals[index], lineLengths[index], angles[index], angles[index], lineColors[index]);
+
+			if (shouldDrawDotProductProjection & shouldDrawDotAndCrossProjectionPrompt)
+			{
+				// Dot product of (normal, vector) is 1D closest position of vector along normal.
+				Vector2 mouseRelativeToStart = Vector2Subtract(GetMousePosition(), lineStarts[index]);
+				float projectionAlongNormal = Vector2DotProduct(normals[index], mouseRelativeToStart);
+				Vector2 pointAlongNormal = Vector2Add(lineStarts[index], Vector2Scale(normals[index], projectionAlongNormal));
+				DrawLineEx(lineStarts[index], pointAlongNormal, 2.0f, dotProductColor);
+				DrawLineEx(Vector2Add(pointAlongNormal, Vector2Scale(clockwiseTangents[index], -8.0f)), Vector2Add(pointAlongNormal, Vector2Scale(clockwiseTangents[index], 8.0f)), 2.0f, dotProductColor);
+			}
+
+			if (shouldDrawCrossProductProjection & shouldDrawDotAndCrossProjectionPrompt)
+			{
+				// Cross product of (normal, vector) is 1D closest position of vector along tangent perpendicular to normal.
+				Vector2 mouseRelativeToStart = Vector2Subtract(GetMousePosition(), lineStarts[index]);
+				float projectionAlongClockwiseTangent = Vector2CrossProduct(normals[index], mouseRelativeToStart);
+				Vector2 pointAlongClockwiseTangent = Vector2Add(lineStarts[index], Vector2Scale(clockwiseTangents[index], projectionAlongClockwiseTangent));
+				DrawLineEx(lineStarts[index], pointAlongClockwiseTangent, 2.0f, crossProductColor);
+				DrawLineEx(Vector2Add(pointAlongClockwiseTangent, Vector2Scale(normals[index], -8.0f)), Vector2Add(pointAlongClockwiseTangent, Vector2Scale(normals[index], 8.0f)), 2.0f, crossProductColor);
+			}
         }
 
 		// We cheat a little bit here by negating the angle so that positive angles turn counter-clockwise.
@@ -201,26 +221,6 @@ int main()
 			// Text label next to arrowhead.
 			DrawArrowLabel(lineStarts[1], normals[0], averageLineLength, angleDelta, angles[0], RAYWHITE);
         }
-
-		if (shouldDrawDotProductProjection & shouldDrawDotAndCrossProjectionPrompt)
-		{
-            // Dot product of (normal, vector) is 1D closest position of vector along normal.
-			Vector2 mouseRelativeToRedStart = Vector2Subtract(GetMousePosition(), lineStarts[0]);
-			float projectionAlongNormal = Vector2DotProduct(normals[0], mouseRelativeToRedStart);
-			Vector2 pointAlongNormal = Vector2Add(lineStarts[0], Vector2Scale(normals[0], projectionAlongNormal));
-			DrawLineEx(lineStarts[0], pointAlongNormal, 2.0f, dotProductColor);
-			DrawLineEx(Vector2Add(pointAlongNormal, Vector2Scale(clockwiseTangents[0], -8.0f)), Vector2Add(pointAlongNormal, Vector2Scale(clockwiseTangents[0], 8.0f)), 2.0f, dotProductColor);
-		}
-
-		if (shouldDrawCrossProductProjection & shouldDrawDotAndCrossProjectionPrompt)
-		{
-			// Cross product of (normal, vector) is 1D closest position of vector along tangent perpendicular to normal.
-			Vector2 mouseRelativeToRedStart = Vector2Subtract(GetMousePosition(), lineStarts[0]);
-			float projectionAlongClockwiseTangent = Vector2CrossProduct(normals[0], mouseRelativeToRedStart);
-			Vector2 pointAlongClockwiseTangent = Vector2Add(lineStarts[0], Vector2Scale(clockwiseTangents[0], projectionAlongClockwiseTangent));
-			DrawLineEx(lineStarts[0], pointAlongClockwiseTangent, 2.0f, crossProductColor);
-			DrawLineEx(Vector2Add(pointAlongClockwiseTangent, Vector2Scale(normals[0], -8.0f)), Vector2Add(pointAlongClockwiseTangent, Vector2Scale(normals[0], 8.0f)), 2.0f, crossProductColor);
-		}
 
         // Draw HUD
 
