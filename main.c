@@ -65,9 +65,10 @@ int main()
     Color dotProductColor = GOLD; // Not green on red arrow to help red-green colorblind viewers.
     Color crossProductColor = DARKGREEN;
     
-    // These two options are for the video.
+    // These three options are for the video.
     bool shouldDrawSecondaryArrow = true;
     bool shouldDrawDotAndCrossProductOptions = true;
+    bool shouldDrawAngleBetween = true;
 
 	bool shouldDrawDotProductProjection = false;
 	bool shouldDrawCrossProductProjection = false;
@@ -113,7 +114,12 @@ int main()
         {
             shouldDrawDotAndCrossProductOptions = !shouldDrawDotAndCrossProductOptions;
         }
+        if (IsKeyPressed(KEY_F3))
+        {
+            shouldDrawAngleBetween = !shouldDrawAngleBetween;
+        }
 
+        float lineLengths[2];
 		Vector2 normals[2];
         Vector2 clockwiseTangents[2];
         float angles[2]; // Counter-clockwise radians [0, TAU).
@@ -121,10 +127,10 @@ int main()
         {
             Vector2 endRelativeToStart = Vector2Subtract(lineEnds[index], lineStarts[index]);
             normals[index] = endRelativeToStart;
-			float lineLength = Vector2Length(endRelativeToStart);
-            if (lineLength > 0.0f)
+            lineLengths[index] = Vector2Length(endRelativeToStart);
+            if (lineLengths[index] > 0.0f)
             {
-                normals[index] = Vector2Scale(normals[index], 1.0f / lineLength);
+                normals[index] = Vector2Scale(normals[index], 1.0f / lineLengths[index]);
             }
             clockwiseTangents[index].x = -normals[index].y;
             clockwiseTangents[index].y = normals[index].x;
@@ -142,7 +148,7 @@ int main()
 			DrawLineEx(lineEnds[index], Vector2Add(lineEnds[index], Vector2Add(Vector2Scale(normals[index], -8.0f), Vector2Scale(clockwiseTangents[index], -8.0f))), 2.0f, lineColors[index]);
             
             // Arc illustrating counter-clockwise angle [0, TAU). Not the most efficient approach but c'est la vie.
-            DrawRingLines(lineStarts[index], 0.0f, lineLength * 0.5f, 90.0f, angles[index] * RAD2DEG + 90.0f, 0, lineColors[index]);
+            DrawRingLines(lineStarts[index], 0.0f, lineLengths[index] * 0.5f, 90.0f, angles[index] * RAD2DEG + 90.0f, 0, lineColors[index]);
 
             // Text label next to arrowhead.
 			const int labelFontSize = 20;
@@ -168,6 +174,24 @@ int main()
 			DrawText(sinText, labelPosX - (int) (MeasureText(sinText, labelFontSize) * labelRightAlignment), labelPosY += labelFontSize, labelFontSize, lineColors[index]);
         }
 
+		// We cheat a little bit here by negating the angle so that positive angles turn counter-clockwise.
+		float angleDelta = -AngleBetween(angles[0], angles[1]);
+
+        if (shouldDrawSecondaryArrow & shouldDrawAngleBetween)
+        {
+            float averageLineLength = lineLengths[0] * 0.5f + lineLengths[1] * 0.5f;
+
+			// Line and arrowhead.
+            Vector2 overlayLineEnd = Vector2Add(lineStarts[1], Vector2Scale(normals[0], averageLineLength));
+			DrawLineEx(lineStarts[1], overlayLineEnd, 2.0f, RAYWHITE);
+			DrawLineEx(overlayLineEnd, Vector2Add(overlayLineEnd, Vector2Add(Vector2Scale(normals[0], -8.0f), Vector2Scale(clockwiseTangents[0], 8.0f))), 2.0f, RAYWHITE);
+			DrawLineEx(overlayLineEnd, Vector2Add(overlayLineEnd, Vector2Add(Vector2Scale(normals[0], -8.0f), Vector2Scale(clockwiseTangents[0], -8.0f))), 2.0f, RAYWHITE);
+
+			// Arc illustrating counter-clockwise angle [0, TAU).
+            float startAngle = angles[1] * RAD2DEG + 90.0f;
+			DrawRingLines(lineStarts[1], 0.0f, averageLineLength * 0.5f, startAngle, startAngle + angleDelta * RAD2DEG, 0, RAYWHITE);
+        }
+
 		if (shouldDrawDotProductProjection & shouldDrawSecondaryArrow & shouldDrawDotAndCrossProductOptions)
 		{
             // Dot product of (normal, vector) is 1D closest position of vector along normal.
@@ -190,9 +214,6 @@ int main()
 
         // Draw HUD
 
-        // We cheat a little bit here by negating the angle so that positive angles turn counter-clockwise.
-        float angleDelta = -AngleBetween(angles[0], angles[1]);
-
         const int fontSize = 30;
         int textPosY = 10;
         DrawText(TextFormat("Red angle: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angles[0] * RAD2DEG, angles[0], cosf(angles[0]), sinf(angles[0])), 10, textPosY, fontSize, lineColors[0]);
@@ -200,11 +221,14 @@ int main()
         if (shouldDrawSecondaryArrow)
         {
             DrawText(TextFormat("Blue angle: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angles[1] * RAD2DEG, angles[1], cosf(angles[1]), sinf(angles[1])), 10, textPosY += fontSize, fontSize, lineColors[1]);
-            DrawText(TextFormat("Angle delta: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angleDelta * RAD2DEG, angleDelta, cosf(angleDelta), sinf(angleDelta)), 10, textPosY += fontSize, fontSize, RAYWHITE);
-            if (shouldDrawDotAndCrossProductOptions)
+            if (shouldDrawAngleBetween)
             {
-                DrawText(TextFormat("Dot product: %.2f", Vector2DotProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, dotProductColor);
-                DrawText(TextFormat("Cross product: %.2f", Vector2CrossProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, crossProductColor);
+                DrawText(TextFormat("Angle delta: %.0f deg (%.2f rad) cos: %.2f sin: %.2f", angleDelta * RAD2DEG, angleDelta, cosf(angleDelta), sinf(angleDelta)), 10, textPosY += fontSize, fontSize, RAYWHITE);
+                if (shouldDrawDotAndCrossProductOptions)
+                {
+                    DrawText(TextFormat("Dot product: %.2f", Vector2DotProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, dotProductColor);
+                    DrawText(TextFormat("Cross product: %.2f", Vector2CrossProduct(normals[0], normals[1])), 10, textPosY += fontSize, fontSize, crossProductColor);
+                }
             }
         }
 
